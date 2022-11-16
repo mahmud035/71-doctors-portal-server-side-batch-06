@@ -14,7 +14,7 @@ app.use(express.json());
 //* Mongodb Atlas
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.yeflywl.mongodb.net/?retryWrites=true&w=majority`;
 
-console.log(uri);
+// console.log(uri);
 
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
@@ -34,6 +34,43 @@ const dbConnect = async () => {
 dbConnect();
 
 //* Collection
+const appointmentOptionsCollection = client
+  .db('doctorsPortal')
+  .collection('appointmentOptions');
+const bookingsCollection = client.db('doctorsPortal').collection('bookings');
+
+/**
+//* API Naming Convention
+ * bookings
+ * app.get('/bookings')
+ * app.get('/bookings/:id')
+ * app.post('/bookings')
+ * app.patch('/bookings/:id)
+ * app.delete('/bookings/:id')
+ */
+
+//* GET (READ) {load available options from database}
+app.get('/appointmentOptions', async (req, res) => {
+  try {
+    const query = {};
+    const cursor = appointmentOptionsCollection.find(query);
+    const appointmentOptions = await cursor.toArray();
+    res.send(appointmentOptions);
+  } catch (error) {
+    console.log(error.message);
+  }
+});
+
+//* POST (CREATE) {upload booking data }
+app.post('/bookings', async (req, res) => {
+  try {
+    const booking = req.body;
+    const result = await bookingsCollection.insertOne(booking);
+    res.send(result);
+  } catch (error) {
+    console.log(error.message);
+  }
+});
 
 app.get('/', (req, res) => {
   res.send('doctors portal server is running');
