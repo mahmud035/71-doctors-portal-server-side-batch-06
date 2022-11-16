@@ -107,7 +107,7 @@ app.post('/bookings', async (req, res) => {
     const alreadyBooked = await bookingsCollection.find(query).toArray();
 
     if (alreadyBooked.length) {
-      const message = `You already have a booking on ${booking.appointmentDate}`;
+      const message = `You already have a booking on ${booking.appointmentDate}, on ${booking.treatmentName}.`;
       return res.send({
         acknowledged: false,
         message: message,
