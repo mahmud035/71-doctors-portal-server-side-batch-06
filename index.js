@@ -56,28 +56,33 @@ app.get('/appointmentOptions', async (req, res) => {
   try {
     const date = req.query.date;
     console.log(date);
+
     const query = {};
     const appointmentOptions = await appointmentOptionsCollection
       .find(query)
       .toArray();
 
-    //* get the bookings of the provided date
+    //*  IMP: get the bookings of the provided (Date)
     const bookingQuery = { appointmentDate: date };
     const alreadyBooked = await bookingsCollection.find(bookingQuery).toArray();
+    // console.log(alreadyBooked);
 
-    // code carefully :D
+    // INFO: code carefully
     appointmentOptions.forEach((option) => {
       const optionBooked = alreadyBooked.filter(
         (book) => book.treatmentName === option.name
       );
+      // console.log('optionBooked:', optionBooked);
+
       const bookedSlots = optionBooked.map((book) => book.selectedSlot);
+      // console.log(date, option.name, 'bookedSlots:', bookedSlots);
+
       const remainingSlots = option.slots.filter(
         (slot) => !bookedSlots.includes(slot)
       );
 
       option.slots = remainingSlots;
-
-      // console.log(option.name, remainingSlots.length);
+      // console.log(date, option.name, 'remainingSlots:', remainingSlots.length);
     });
 
     res.send(appointmentOptions);
@@ -92,7 +97,7 @@ app.post('/bookings', async (req, res) => {
     const booking = req.body;
     console.log(booking);
 
-    //* Limit one booking per user per treatment per day
+    //* IMP: Limit one booking per user per treatment per day
     const query = {
       appointmentDate: booking.appointmentDate,
       email: booking.email,
