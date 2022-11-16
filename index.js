@@ -71,6 +71,11 @@ app.get('/appointmentOptions', async (req, res) => {
         (book) => book.treatmentName === option.name
       );
       const bookedSlots = optionBooked.map((book) => book.selectedSlot);
+      const remainingSlots = option.slots.filter(
+        (slot) => !bookedSlots.includes(slot)
+      );
+
+      option.slots = remainingSlots;
 
       // console.log(option.name, remainingSlots.length);
     });
