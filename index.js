@@ -61,7 +61,7 @@ app.get('/appointmentOptions', async (req, res) => {
       .find(query)
       .toArray();
 
-    //? get the bookings of the provided date
+    //* get the bookings of the provided date
     const bookingQuery = { appointmentDate: date };
     const alreadyBooked = await bookingsCollection.find(bookingQuery).toArray();
 
@@ -90,6 +90,25 @@ app.get('/appointmentOptions', async (req, res) => {
 app.post('/bookings', async (req, res) => {
   try {
     const booking = req.body;
+    console.log(booking);
+
+    //* Limit one booking per user per treatment per day
+    const query = {
+      appointmentDate: booking.appointmentDate,
+      email: booking.email,
+      treatmentName: booking.treatmentName,
+    };
+
+    const alreadyBooked = await bookingsCollection.find(query).toArray();
+
+    if (alreadyBooked.length) {
+      const message = `You already have a booking on ${booking.appointmentDate}`;
+      return res.send({
+        acknowledged: false,
+        message: message,
+      });
+    }
+
     const result = await bookingsCollection.insertOne(booking);
     res.send(result);
   } catch (error) {
