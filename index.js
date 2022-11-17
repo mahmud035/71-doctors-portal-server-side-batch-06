@@ -91,6 +91,21 @@ app.get('/appointmentOptions', async (req, res) => {
   }
 });
 
+//* GET (READ) {get all bookings of a specific user using Email}
+app.get('/bookings', async (req, res) => {
+  try {
+    const email = req.query.email;
+    const query = {
+      email: email,
+    };
+    const bookings = await bookingsCollection.find(query).toArray();
+    console.log(bookings);
+    res.send(bookings);
+  } catch (error) {
+    console.log(error.message);
+  }
+});
+
 //* POST (CREATE) {upload booking data }
 app.post('/bookings', async (req, res) => {
   try {
