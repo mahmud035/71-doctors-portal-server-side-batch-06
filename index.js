@@ -11,6 +11,10 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+app.get('/', (req, res) => {
+  res.send('doctors portal server is running');
+});
+
 //* Mongodb Atlas
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.yeflywl.mongodb.net/?retryWrites=true&w=majority`;
 
@@ -38,6 +42,7 @@ const appointmentOptionsCollection = client
   .db('doctorsPortal')
   .collection('appointmentOptions');
 const bookingsCollection = client.db('doctorsPortal').collection('bookings');
+const usersCollection = client.db('doctorsPortal').collection('users');
 
 /**
 //* API Naming Convention
@@ -55,7 +60,7 @@ const bookingsCollection = client.db('doctorsPortal').collection('bookings');
 app.get('/appointmentOptions', async (req, res) => {
   try {
     const date = req.query.date;
-    console.log(date);
+    // console.log(date);
 
     const query = {};
     const appointmentOptions = await appointmentOptionsCollection
@@ -99,7 +104,7 @@ app.get('/bookings', async (req, res) => {
       email: email,
     };
     const bookings = await bookingsCollection.find(query).toArray();
-    console.log(bookings);
+    // console.log(bookings);
     res.send(bookings);
   } catch (error) {
     console.log(error.message);
@@ -110,7 +115,7 @@ app.get('/bookings', async (req, res) => {
 app.post('/bookings', async (req, res) => {
   try {
     const booking = req.body;
-    console.log(booking);
+    // console.log(booking);
 
     //* IMP: Limit one booking per user per treatment per day
     const query = {
@@ -136,8 +141,15 @@ app.post('/bookings', async (req, res) => {
   }
 });
 
-app.get('/', (req, res) => {
-  res.send('doctors portal server is running');
+//* POST (CREATE) {Save registered user information in the database}
+app.post('/users', async (req, res) => {
+  try {
+    const user = req.body;
+    const result = await usersCollection.insertOne(user);
+    res.send(result);
+  } catch (error) {
+    console.log(error.message);
+  }
 });
 
 app.listen(port, () => {
