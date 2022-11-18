@@ -12,6 +12,25 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+const verifyJWT = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader) {
+    return res.status(401).send({ message: 'Unauthorized Access' });
+  }
+
+  try {
+    const token = authHeader.split(' ')[1];
+    const user = jwt.verify(token, process.env.ACCESS_TOKEN);
+    console.log(user);
+
+    req.user = user;
+    next();
+  } catch (error) {
+    res.status(403).send({ message: 'Forbidden Access' });
+  }
+};
+
 app.get('/', (req, res) => {
   res.send('doctors portal server is running');
 });
@@ -98,9 +117,10 @@ app.get('/appointmentOptions', async (req, res) => {
 });
 
 //* GET (READ) {get all bookings of a specific user using Email}
-app.get('/bookings', async (req, res) => {
+app.get('/bookings', verifyJWT, async (req, res) => {
   try {
     const email = req.query.email;
+
     const query = {
       email: email,
     };
@@ -123,7 +143,7 @@ app.get('/jwt', async (req, res) => {
     return res.send({ accessToken: token });
   }
 
-  res.status(403).send({ accessToken: 'Forbidden' });
+  res.status(403).send({ accessToken: '' });
 });
 
 //* POST (CREATE) {upload booking data }
