@@ -12,6 +12,7 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+// verify jwt token
 const verifyJWT = (req, res, next) => {
   const authHeader = req.headers.authorization;
 
@@ -22,9 +23,11 @@ const verifyJWT = (req, res, next) => {
   try {
     const token = authHeader.split(' ')[1];
     const user = jwt.verify(token, process.env.ACCESS_TOKEN);
-    console.log(user);
+    // console.log(user);
 
     req.user = user;
+
+    // IMP: Must call the next() function
     next();
   } catch (error) {
     res.status(403).send({ message: 'Forbidden Access' });
@@ -119,7 +122,12 @@ app.get('/appointmentOptions', async (req, res) => {
 //* GET (READ) {get all bookings of a specific user using Email}
 app.get('/bookings', verifyJWT, async (req, res) => {
   try {
-    const email = req.query.email;
+    const email = req.query.email; // query kore pathano email
+    const userEmail = req.user.email; // verified user email (jwt)
+
+    if (email !== userEmail) {
+      return res.status(403).send({ message: 'Forbidden Access' });
+    }
 
     const query = {
       email: email,
@@ -132,7 +140,7 @@ app.get('/bookings', verifyJWT, async (req, res) => {
   }
 });
 
-//* JWT Token
+//* JWT Token {create JWT Token}
 app.get('/jwt', async (req, res) => {
   const email = req.query.email;
   const query = { email: email };
@@ -144,6 +152,17 @@ app.get('/jwt', async (req, res) => {
   }
 
   res.status(403).send({ accessToken: '' });
+});
+
+//* GET (READ) {get all users for dashboard page}
+app.get('/users', async (req, res) => {
+  try {
+    const query = {};
+    const users = await usersCollection.find(query).toArray();
+    res.send(users);
+  } catch (error) {
+    console.log(error.message.bold);
+  }
 });
 
 //* POST (CREATE) {upload booking data }
