@@ -146,6 +146,7 @@ app.get('/jwt', async (req, res) => {
   const query = { email: email };
   const user = await usersCollection.findOne(query);
 
+  // if user is found in database than {create/assign a JWT token}.
   if (user) {
     const token = jwt.sign({ email }, process.env.ACCESS_TOKEN);
     return res.send({ accessToken: token });
@@ -163,6 +164,15 @@ app.get('/users', async (req, res) => {
   } catch (error) {
     console.log(error.message.bold);
   }
+});
+
+//* GET (READ) {check if a specific user is an Admin or Not?}
+// dynamic email
+app.get('/users/admin/:email', async (req, res) => {
+  const email = req.params.email;
+  const query = { email: email };
+  const user = await usersCollection.findOne(query);
+  res.send({ isAdmin: user?.role === 'admin' });
 });
 
 //* POST (CREATE) {upload booking data }
@@ -207,6 +217,7 @@ app.post('/users', async (req, res) => {
 });
 
 //* PATCH (UPDATE) {update a specific user information. Give him an Admin role}
+// dynamic id
 app.put('/users/admin/:id', verifyJWT, async (req, res) => {
   const userEmail = req.user.email; // verified user email (jwt)
   const query = { email: userEmail };
