@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('colors');
 require('dotenv').config();
 const app = express();
@@ -204,6 +204,31 @@ app.post('/users', async (req, res) => {
   } catch (error) {
     console.log(error.message);
   }
+});
+
+//* PATCH (UPDATE) {update a specific user information. Give him an Admin role}
+app.put('/users/admin/:id', verifyJWT, async (req, res) => {
+  const userEmail = req.user.email; // verified user email (jwt)
+  const query = { email: userEmail };
+  const user = await usersCollection.findOne(query);
+  console.log(userEmail, user);
+
+  // Checking if the user is an admin or not. If not, it will return a forbidden access message.
+  if (user?.role !== 'admin') {
+    return res.status(403).send({ message: 'Forbidden Access' });
+  }
+
+  // get id sent from client side
+  const id = req.params.id;
+  const filter = { _id: ObjectId(id) };
+  const options = { upsert: true };
+  const updatedUser = {
+    $set: {
+      role: 'admin',
+    },
+  };
+  const result = await usersCollection.updateOne(filter, updatedUser, options);
+  res.send(result);
 });
 
 app.listen(port, () => {
