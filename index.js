@@ -119,6 +119,17 @@ app.get('/appointmentOptions', async (req, res) => {
   }
 });
 
+//* GET (READ) {Load services with data project}
+app.get('/appointmentSpecialty', async (req, res) => {
+  const query = {};
+
+  const result = await appointmentOptionsCollection
+    .find(query)
+    .project({ name: 1 })
+    .toArray();
+  res.send(result);
+});
+
 //* GET (READ) {get all bookings of a specific user using Email}
 app.get('/bookings', verifyJWT, async (req, res) => {
   try {
