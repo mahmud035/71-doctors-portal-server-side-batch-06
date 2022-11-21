@@ -12,7 +12,7 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// verify jwt token
+//* verify jwt token (1st Middleware function)
 const verifyJWT = (req, res, next) => {
   const authHeader = req.headers.authorization;
 
@@ -80,10 +80,21 @@ const doctorsCollection = client.db('doctorsPortal').collection('doctors');
 
 // NOTE: verifyAdmin() middleware k always verifyJWT() er pore use korte hobe
 //* Verify Admin (2nd Middleware function)
-const verifyAdmin = (req, res, next) => {
-  console.log('inside verifyAdmin:', req.user.email);
+const verifyAdmin = async (req, res, next) => {
+  const userEmail = req.user.email; // verified user email (jwt)
+  const query = { email: userEmail };
+  const user = await usersCollection.findOne(query);
+  // console.log(userEmail, user);
+
+  // Checking if the user is an admin or not. If not, it will return a forbidden access message.
+  if (user?.role !== 'admin') {
+    return res.status(403).send({ message: 'Forbidden Access' });
+  }
+
+  next();
 };
 
+//* -------------------------GET(READ)-------------------------
 // Use Aggregate to query multiple collection and then merge data
 
 //* GET (READ) {load available Appointment Options from database}
@@ -185,7 +196,7 @@ app.get('/users', async (req, res) => {
 });
 
 //* GET (READ) {check if a specific user is an Admin or Not?}
-// dynamic email
+//? using dynamic email
 app.get('/users/admin/:email', async (req, res) => {
   try {
     const email = req.params.email;
@@ -207,6 +218,8 @@ app.get('/doctors', verifyJWT, verifyAdmin, async (req, res) => {
     console.log(error.message.bold);
   }
 });
+
+//* -------------------------POST(CREATE)-------------------------
 
 //* POST (CREATE) {upload booking data }
 app.post('/bookings', async (req, res) => {
@@ -250,25 +263,17 @@ app.post('/users', async (req, res) => {
 });
 
 //* POST (CREATE) {upload doctors data}
-app.post('/doctors', verifyJWT, async (req, res) => {
+app.post('/doctors', verifyJWT, verifyAdmin, async (req, res) => {
   const doctor = req.body;
   const result = await doctorsCollection.insertOne(doctor);
   res.send(result);
 });
 
+//* --------------------PUT/PATCH(UPDATE)-----------------------
+
 //* PUT (UPDATE) {update a specific user information. Give him an Admin role}
-// dynamic id
-app.put('/users/admin/:id', verifyJWT, async (req, res) => {
-  const userEmail = req.user.email; // verified user email (jwt)
-  const query = { email: userEmail };
-  const user = await usersCollection.findOne(query);
-  console.log(userEmail, user);
-
-  // Checking if the user is an admin or not. If not, it will return a forbidden access message.
-  if (user?.role !== 'admin') {
-    return res.status(403).send({ message: 'Forbidden Access' });
-  }
-
+//! using dynamic id
+app.put('/users/admin/:id', verifyJWT, verifyAdmin, async (req, res) => {
   // get id sent from client side
   const id = req.params.id;
   const filter = { _id: ObjectId(id) };
@@ -282,8 +287,10 @@ app.put('/users/admin/:id', verifyJWT, async (req, res) => {
   res.send(result);
 });
 
+//* -------------------------DELETE(DELETE)-------------------------
+
 //* DELETE (DELETE) {delete a doctor}
-app.delete('/doctors/:id', verifyJWT, async (req, res) => {
+app.delete('/doctors/:id', verifyJWT, verifyAdmin, async (req, res) => {
   const id = req.params.id;
   const query = { _id: ObjectId(id) };
   const result = await doctorsCollection.deleteOne(query);
