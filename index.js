@@ -78,6 +78,12 @@ const doctorsCollection = client.db('doctorsPortal').collection('doctors');
  * app.delete('/bookings/:id')
  */
 
+// NOTE: verifyAdmin() middleware k always verifyJWT() er pore use korte hobe
+//* Verify Admin (2nd Middleware function)
+const verifyAdmin = (req, res, next) => {
+  console.log('inside verifyAdmin:', req.user.email);
+};
+
 // Use Aggregate to query multiple collection and then merge data
 
 //* GET (READ) {load available Appointment Options from database}
@@ -192,7 +198,7 @@ app.get('/users/admin/:email', async (req, res) => {
 });
 
 //* GET (READ) {get all doctors for dashboard page(Manage Doctors)}
-app.get('/doctors', async (req, res) => {
+app.get('/doctors', verifyJWT, verifyAdmin, async (req, res) => {
   try {
     const query = {};
     const doctors = await doctorsCollection.find(query).toArray();
@@ -244,13 +250,13 @@ app.post('/users', async (req, res) => {
 });
 
 //* POST (CREATE) {upload doctors data}
-app.post('/doctors', async (req, res) => {
+app.post('/doctors', verifyJWT, async (req, res) => {
   const doctor = req.body;
   const result = await doctorsCollection.insertOne(doctor);
   res.send(result);
 });
 
-//* PATCH (UPDATE) {update a specific user information. Give him an Admin role}
+//* PUT (UPDATE) {update a specific user information. Give him an Admin role}
 // dynamic id
 app.put('/users/admin/:id', verifyJWT, async (req, res) => {
   const userEmail = req.user.email; // verified user email (jwt)
@@ -273,6 +279,14 @@ app.put('/users/admin/:id', verifyJWT, async (req, res) => {
     },
   };
   const result = await usersCollection.updateOne(filter, updatedUser, options);
+  res.send(result);
+});
+
+//* DELETE (DELETE) {delete a doctor}
+app.delete('/doctors/:id', verifyJWT, async (req, res) => {
+  const id = req.params.id;
+  const query = { _id: ObjectId(id) };
+  const result = await doctorsCollection.deleteOne(query);
   res.send(result);
 });
 
