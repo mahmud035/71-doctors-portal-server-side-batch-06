@@ -66,6 +66,7 @@ const appointmentOptionsCollection = client
   .collection('appointmentOptions');
 const bookingsCollection = client.db('doctorsPortal').collection('bookings');
 const usersCollection = client.db('doctorsPortal').collection('users');
+const doctorsCollection = client.db('doctorsPortal').collection('doctors');
 
 /**
 //* API Naming Convention
@@ -79,7 +80,7 @@ const usersCollection = client.db('doctorsPortal').collection('users');
 
 // Use Aggregate to query multiple collection and then merge data
 
-//* GET (READ) {load available options from database}
+//* GET (READ) {load available Appointment Options from database}
 app.get('/appointmentOptions', async (req, res) => {
   try {
     const date = req.query.date;
@@ -119,7 +120,7 @@ app.get('/appointmentOptions', async (req, res) => {
   }
 });
 
-//* GET (READ) {Load services with data project}
+//* GET (READ) {Load just Appointment Option Names with data project (for Add A Doctor)}
 app.get('/appointmentSpecialty', async (req, res) => {
   const query = {};
 
@@ -130,7 +131,7 @@ app.get('/appointmentSpecialty', async (req, res) => {
   res.send(result);
 });
 
-//* GET (READ) {get all bookings of a specific user using Email}
+//* GET (READ) {get all appointments/bookings of a specific user using his/her Email address}
 app.get('/bookings', verifyJWT, async (req, res) => {
   try {
     const email = req.query.email; // query kore pathano email
@@ -166,7 +167,7 @@ app.get('/jwt', async (req, res) => {
   res.status(403).send({ accessToken: '' });
 });
 
-//* GET (READ) {get all users for dashboard page}
+//* GET (READ) {get all users for dashboard page(All Users)}
 app.get('/users', async (req, res) => {
   try {
     const query = {};
@@ -180,10 +181,25 @@ app.get('/users', async (req, res) => {
 //* GET (READ) {check if a specific user is an Admin or Not?}
 // dynamic email
 app.get('/users/admin/:email', async (req, res) => {
-  const email = req.params.email;
-  const query = { email: email };
-  const user = await usersCollection.findOne(query);
-  res.send({ isAdmin: user?.role === 'admin' });
+  try {
+    const email = req.params.email;
+    const query = { email: email };
+    const user = await usersCollection.findOne(query);
+    res.send({ isAdmin: user?.role === 'admin' });
+  } catch (error) {
+    console.log(error.message.bold);
+  }
+});
+
+//* GET (READ) {get all doctors for dashboard page(Manage Doctors)}
+app.get('/doctors', async (req, res) => {
+  try {
+    const query = {};
+    const doctors = await doctorsCollection.find(query).toArray();
+    res.send(doctors);
+  } catch (error) {
+    console.log(error.message.bold);
+  }
 });
 
 //* POST (CREATE) {upload booking data }
@@ -225,6 +241,13 @@ app.post('/users', async (req, res) => {
   } catch (error) {
     console.log(error.message);
   }
+});
+
+//* POST (CREATE) {upload doctors data}
+app.post('/doctors', async (req, res) => {
+  const doctor = req.body;
+  const result = await doctorsCollection.insertOne(doctor);
+  res.send(result);
 });
 
 //* PATCH (UPDATE) {update a specific user information. Give him an Admin role}
