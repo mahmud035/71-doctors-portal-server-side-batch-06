@@ -279,7 +279,7 @@ app.post('/doctors', verifyJWT, verifyAdmin, async (req, res) => {
   res.send(result);
 });
 
-//* POST (CREATE) {Payment: Stripe}
+//* POST (CREATE) {Payment: Stripe, 77-6 Server side payment intents API to get client Secret from stripe}
 app.post('/create-payment-intent', async (req, res) => {
   const booking = req.body;
   const price = booking.price;
