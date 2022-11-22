@@ -300,3 +300,22 @@ app.delete('/doctors/:id', verifyJWT, verifyAdmin, async (req, res) => {
 app.listen(port, () => {
   console.log('Server up and running'.cyan.bold);
 });
+
+//! Exception: (video:77-1)
+// temporary to update price field on appointment options
+//* GET (UPDATE) {add price on available appointments}
+// app.get('/addPrice', async (req, res) => {
+//   const filter = {};
+//   const options = { upsert: true };
+//   const updatedDoc = {
+//     $set: {
+//       price: 99,
+//     },
+//   };
+//   const result = await appointmentOptionsCollection.updateMany(
+//     filter,
+//     updatedDoc,
+//     options
+//   );
+//   res.send(result);
+// });
