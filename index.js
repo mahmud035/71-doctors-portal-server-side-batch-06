@@ -169,6 +169,14 @@ app.get('/bookings', verifyJWT, async (req, res) => {
   }
 });
 
+//* GET (READ) {get a specific appointment/booking for Payment}
+app.get('/bookings/:id', async (req, res) => {
+  const id = req.params.id;
+  const query = { _id: ObjectId(id) };
+  const booking = await bookingsCollection.findOne(query);
+  res.send(booking);
+});
+
 //* JWT Token {create JWT Token}
 app.get('/jwt', async (req, res) => {
   const email = req.query.email;
