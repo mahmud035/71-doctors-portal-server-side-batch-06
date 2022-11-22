@@ -4,6 +4,8 @@ const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('colors');
 require('dotenv').config();
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
 const app = express();
 
 const port = process.env.PORT || 5000;
@@ -275,6 +277,23 @@ app.post('/doctors', verifyJWT, verifyAdmin, async (req, res) => {
   const doctor = req.body;
   const result = await doctorsCollection.insertOne(doctor);
   res.send(result);
+});
+
+//* POST (CREATE) {Payment: Stripe}
+app.post('/create-payment-intent', async (req, res) => {
+  const booking = req.body;
+  const price = booking.price;
+  const amount = price * 100;
+
+  const paymentIntent = await stripe.paymentIntents.create({
+    currency: 'usd',
+    amount: amount,
+    payment_method_types: ['card'],
+  });
+
+  res.send({
+    clientSecret: paymentIntent.client_secret,
+  });
 });
 
 //* --------------------PUT/PATCH(UPDATE)-----------------------
