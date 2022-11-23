@@ -287,9 +287,9 @@ app.post('/doctors', verifyJWT, verifyAdmin, async (req, res) => {
 app.post('/create-payment-intent', async (req, res) => {
   try {
     const booking = req.body;
-    const price = booking?.items[0]?.price;
+    const price = booking?.price;
     const amount = price * 100;
-    // console.log(price);
+    // console.log(booking);
 
     const paymentIntent = await stripe.paymentIntents.create({
       currency: 'usd',
