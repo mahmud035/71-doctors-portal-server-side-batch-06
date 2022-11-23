@@ -173,10 +173,14 @@ app.get('/bookings', verifyJWT, async (req, res) => {
 
 //* GET (READ) {get a specific appointment/booking for Payment}
 app.get('/bookings/:id', async (req, res) => {
-  const id = req.params.id;
-  const query = { _id: ObjectId(id) };
-  const booking = await bookingsCollection.findOne(query);
-  res.send(booking);
+  try {
+    const id = req.params.id;
+    const query = { _id: ObjectId(id) };
+    const booking = await bookingsCollection.findOne(query);
+    res.send(booking);
+  } catch (error) {
+    console.log(error.message.bold);
+  }
 });
 
 //* JWT Token {create JWT Token}
@@ -281,19 +285,24 @@ app.post('/doctors', verifyJWT, verifyAdmin, async (req, res) => {
 
 //* POST (CREATE) {Payment: Stripe, 77-6 Server side payment intents API to get client Secret from stripe}
 app.post('/create-payment-intent', async (req, res) => {
-  const booking = req.body;
-  const price = booking.price;
-  const amount = price * 100;
+  try {
+    const booking = req.body;
+    const price = booking?.items[0]?.price;
+    const amount = price * 100;
+    // console.log(price);
 
-  const paymentIntent = await stripe.paymentIntents.create({
-    currency: 'usd',
-    amount: amount,
-    payment_method_types: ['card'],
-  });
+    const paymentIntent = await stripe.paymentIntents.create({
+      currency: 'usd',
+      amount: amount,
+      payment_method_types: ['card'],
+    });
 
-  res.send({
-    clientSecret: paymentIntent.client_secret,
-  });
+    res.send({
+      clientSecret: paymentIntent.client_secret,
+    });
+  } catch (error) {
+    console.log(error.message.bold);
+  }
 });
 
 //* --------------------PUT/PATCH(UPDATE)-----------------------
